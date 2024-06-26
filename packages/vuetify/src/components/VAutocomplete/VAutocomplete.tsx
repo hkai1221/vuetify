@@ -238,7 +238,11 @@ export const VAutocomplete = genericComponent<new <
         menu.value = false
       }
 
-      if (highlightFirst.value && ['Enter', 'Tab'].includes(e.key)) {
+      if (
+        highlightFirst.value &&
+        ['Enter', 'Tab'].includes(e.key) &&
+        !model.value.some(({ value }) => value === displayItems.value[0].value)
+      ) {
         select(displayItems.value[0])
       }
 
@@ -250,21 +254,18 @@ export const VAutocomplete = genericComponent<new <
         if (
           !props.multiple &&
           hasSelectionSlot.value &&
-          model.value.length > 0
+          model.value.length > 0 &&
+          !search.value
         ) return select(model.value[0], false)
 
-        if (selectionIndex.value < 0) {
-          if (e.key === 'Backspace' && !search.value) {
-            selectionIndex.value = length - 1
-          }
+        if (~selectionIndex.value) {
+          const originalSelectionIndex = selectionIndex.value
+          select(model.value[selectionIndex.value], false)
 
-          return
+          selectionIndex.value = originalSelectionIndex >= length - 1 ? (length - 2) : originalSelectionIndex
+        } else if (e.key === 'Backspace' && !search.value) {
+          selectionIndex.value = length - 1
         }
-
-        const originalSelectionIndex = selectionIndex.value
-        select(model.value[selectionIndex.value], false)
-
-        selectionIndex.value = originalSelectionIndex >= length - 1 ? (length - 2) : originalSelectionIndex
       }
 
       if (!props.multiple) return
@@ -324,7 +325,7 @@ export const VAutocomplete = genericComponent<new <
       listHasFocus.value = false
     }
     function onUpdateModelValue (v: any) {
-      if (v == null || (v === '' && !props.multiple)) model.value = []
+      if (v == null || (v === '' && !props.multiple && !hasSelectionSlot.value)) model.value = []
     }
 
     const isSelecting = shallowRef(false)
@@ -372,15 +373,8 @@ export const VAutocomplete = genericComponent<new <
         nextTick(() => isSelecting.value = false)
       } else {
         if (!props.multiple && search.value == null) model.value = []
-        else if (
-          highlightFirst.value &&
-          !listHasFocus.value &&
-          !model.value.some(({ value }) => value === displayItems.value[0].value)
-        ) {
-          select(displayItems.value[0])
-        }
         menu.value = false
-        search.value = ''
+        if (!model.value.some(({ title }) => title === search.value)) search.value = ''
         selectionIndex.value = -1
       }
     })
@@ -641,6 +635,7 @@ export const VAutocomplete = genericComponent<new <
                     onClick={ noop }
                     aria-label={ t(label.value) }
                     title={ t(label.value) }
+                    tabindex="-1"
                   />
                 ) : undefined }
               </>

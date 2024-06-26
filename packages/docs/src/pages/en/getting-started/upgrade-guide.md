@@ -115,7 +115,7 @@ app.use(vuetify)
 - `value` prop has been replaced by `model-value` on components that support `v-model` usage. (Vue 3 requires this change)
   - Note that this does not apply to `value` used as a *selection value*, for example `v-btn` within `v-btn-toggle`.
 - `@input` event has been replaced by `@update:model-value` on components that support `v-model` usage. (Vue 3 requires this change)
-- `left` and `right` have been replaced by `start` and `end` respectively. This applies to utility classes too, for example `.border-r` is now `.border-e`.
+- `left` and `right` have been replaced by `start` and `end` respectively. This applies to utility classes too, for example `.rounded-r` is now `.rounded-e`.
 - Size props `small` / `medium` / `large` etc. have been combined into a single `size` prop.
 - `absolute` and `fixed` props have been combined into a single `position` prop.
 - `top` / `bottom` / `left` / `right` props have been combined into a single `location` prop.
@@ -231,6 +231,11 @@ app.use(vuetify)
 ### v-simple-table
 
 - `v-simple-table` has been renamed to `v-table`
+
+### v-stepper (vertical)
+
+- `v-stepper-step` has been renamed to `v-stepper-vertical-item`. Move content into the **title** slot.
+- `v-stepper-content` has been removed. Move content to the default slot of `v-stepper-vertical-item`.
 
 ### v-data-table
 

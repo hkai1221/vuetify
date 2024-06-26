@@ -176,7 +176,7 @@ export const VSelect = genericComponent<new <
 
     const displayItems = computed(() => {
       if (props.hideSelected) {
-        return items.value.filter(item => !model.value.some(s => s === item))
+        return items.value.filter(item => !model.value.some(s => props.valueComparator(s, item)))
       }
       return items.value
     })
@@ -250,6 +250,10 @@ export const VSelect = genericComponent<new <
       const item = items.value.find(item => item.title.toLowerCase().startsWith(keyboardLookupPrefix))
       if (item !== undefined) {
         model.value = [item]
+        const index = displayItems.value.indexOf(item)
+        IN_BROWSER && window.requestAnimationFrame(() => {
+          index >= 0 && vVirtualScrollRef.value?.scrollToIndex(index)
+        })
       }
     }
 

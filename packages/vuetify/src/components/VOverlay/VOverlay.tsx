@@ -48,6 +48,7 @@ import {
 // Types
 import type { PropType, Ref } from 'vue'
 import type { BackgroundColorData } from '@/composables/color'
+import type { TemplateRef } from '@/util'
 
 interface ScrimProps {
   [key: string]: unknown
@@ -74,7 +75,7 @@ function Scrim (props: ScrimProps) {
 
 export type OverlaySlots = {
   default: { isActive: Ref<boolean> }
-  activator: { isActive: boolean, props: Record<string, any> }
+  activator: { isActive: boolean, props: Record<string, any>, targetRef: TemplateRef }
 }
 
 export const makeVOverlayProps = propsFactory({
@@ -127,6 +128,7 @@ export const VOverlay = genericComponent<OverlaySlots>()({
   emits: {
     'click:outside': (e: MouseEvent) => true,
     'update:modelValue': (value: boolean) => true,
+    afterEnter: () => true,
     afterLeave: () => true,
   },
 
@@ -138,7 +140,6 @@ export const VOverlay = genericComponent<OverlaySlots>()({
         if (!(v && props.disabled)) model.value = v
       },
     })
-    const { teleportTarget } = useTeleport(computed(() => props.attach || props.contained))
     const { themeClasses } = provideTheme(props)
     const { rtlClasses, isRtl } = useRtl()
     const { hasContent, onAfterLeave: _onAfterLeave } = useLazy(props, isActive)
@@ -153,6 +154,9 @@ export const VOverlay = genericComponent<OverlaySlots>()({
       contentEvents,
       scrimEvents,
     } = useActivator(props, { isActive, isTop: localTop })
+    const potentialShadowDomRoot = computed(() => (activatorEl?.value as Element)?.getRootNode() as Element)
+    const { teleportTarget } = useTeleport(computed(() => props.attach || props.contained ||
+      potentialShadowDomRoot.value instanceof ShadowRoot ? potentialShadowDomRoot.value ?? true : false))
     const { dimensionStyles } = useDimension(props)
     const isMounted = useHydration()
     const { scopeId } = useScopeId()
@@ -254,6 +258,10 @@ export const VOverlay = genericComponent<OverlaySlots>()({
       })
     }
 
+    function onAfterEnter () {
+      emit('afterEnter')
+    }
+
     function onAfterLeave () {
       _onAfterLeave()
       emit('afterLeave')
@@ -263,9 +271,9 @@ export const VOverlay = genericComponent<OverlaySlots>()({
       <>
         { slots.activator?.({
           isActive: isActive.value,
+          targetRef,
           props: mergeProps({
             ref: activatorRef,
-            targetRef,
           }, activatorEvents.value, props.activatorProps),
         })}
 
@@ -309,6 +317,7 @@ export const VOverlay = genericComponent<OverlaySlots>()({
                 persisted
                 transition={ props.transition }
                 target={ target.value }
+                onAfterEnter={ onAfterEnter }
                 onAfterLeave={ onAfterLeave }
               >
                 <div
