@@ -5,6 +5,7 @@ import { makeRoundedProps, useRounded } from '../rounded'
 import { mount } from '@vue/test-utils'
 
 // Types
+import { toRef, type Ref } from 'vue'
 import type { RoundedProps } from '../rounded'
 
 describe('rounded.ts', () => {
@@ -39,6 +40,25 @@ describe('rounded.ts', () => {
     [{ rounded: 'te-xl be-lg' }, ['rounded-te-xl', 'rounded-be-lg']],
   ] as RoundedProps[])('should return correct rounded classes', (props: RoundedProps, expected: any) => {
     const { roundedClasses } = useRounded(props, 'foo')
+
+    expect(roundedClasses.value).toStrictEqual(expected)
+  })
+
+  it.each([
+    [null, []],
+    [1, []],
+    // Rounded only
+    [true, ['foo--rounded']],
+    ['', ['foo--rounded']],
+    // Rounded with 0
+    [0, ['rounded-0']],
+    [false, ['rounded-0']],
+    // Rounded with a word
+    ['circle', ['rounded-circle']],
+    // Corner and axis rounded
+    ['te-xl be-lg', ['rounded-te-xl', 'rounded-be-lg']],
+  ] as RoundedProps[])('should return same result when props are passed as ref', (rounded: string | number | null, expected: any) => {
+    const { roundedClasses } = useRounded(toRef(() => rounded), 'foo')
 
     expect(roundedClasses.value).toStrictEqual(expected)
   })
